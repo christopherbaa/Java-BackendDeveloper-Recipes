@@ -20,10 +20,7 @@ public class RecipeController {
 
     @PostMapping
     public void postRecipe(@RequestBody Recipe recipe) {
-        setRecipe(recipe);
-    }
-
-    public void setRecipe(Recipe recipe) {
         this.recipe = recipe;
     }
+
 }
