@@ -13,6 +13,7 @@ import java.util.ArrayList;
 @RequestMapping("/api/recipe")
 public class RecipeController {
 
+    // TODO Should be changed to Map to avoid double entry's
     private ArrayList<Recipe> recipes;
 
     public RecipeController() {
@@ -33,8 +34,9 @@ public class RecipeController {
 
     @PostMapping("/new")
     public ResponseEntity<RecipeIdentifier> postRecipe(@RequestBody Recipe recipe) {
-        this.recipes.add(recipe);
-        return new ResponseEntity<>(new RecipeIdentifier(this.recipes.indexOf(recipe)), HttpStatus.OK);
+        return this.recipes.add(recipe) ?
+                new ResponseEntity<>(new RecipeIdentifier(this.recipes.indexOf(recipe)), HttpStatus.OK) :
+                new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
 }
