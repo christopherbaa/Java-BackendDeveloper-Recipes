@@ -2,7 +2,7 @@ package de.nutposit.javabackenddeveloper_recipes.model;
 
 public class RecipeIdentifier {
 
-    int id;
+    private int id;
 
     public RecipeIdentifier(int id) {
         this.id = id;
