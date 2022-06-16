@@ -1,41 +1,41 @@
 package de.nutposit.javabackenddeveloper_recipes.controller;
 
-import de.nutposit.javabackenddeveloper_recipes.model.RecipeIdentifier;
+import de.nutposit.javabackenddeveloper_recipes.dto.RecipeDto;
 import de.nutposit.javabackenddeveloper_recipes.model.Recipe;
+import de.nutposit.javabackenddeveloper_recipes.dto.RecipeIdDto;
+import de.nutposit.javabackenddeveloper_recipes.service.RecipeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/recipe")
 public class RecipeController {
 
-    // TODO Should be changed to Map to avoid double entry's
-    private ArrayList<Recipe> recipes;
+    private final RecipeService recipeService;
 
-    public RecipeController() {
-        this.recipes = new ArrayList<>();
+    public RecipeController(@Autowired RecipeService recipeService) {
+        this.recipeService = recipeService;
     }
 
     @GetMapping
-    public ArrayList<Recipe> getRecipes() {
-        return this.recipes;
+    public Iterable<Recipe> getRecipes() {
+        return recipeService.getRecipes().findAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Recipe> getRecipe(@PathVariable("id") int id) {
-        return id < this.recipes.size() && id >= 0 ?
-                new ResponseEntity<>(this.recipes.get(id), HttpStatus.OK) :
+    public ResponseEntity<RecipeDto> getRecipe(@PathVariable("id") Long id) {
+        return this.recipeService.getRecipes().existsById(id) ?
+                new ResponseEntity<>(new RecipeDto(this.recipeService.getRecipes().findById(id).orElse(new Recipe())), HttpStatus.OK) :
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/new")
-    public ResponseEntity<RecipeIdentifier> postRecipe(@RequestBody Recipe recipe) {
-        return this.recipes.add(recipe) ?
-                new ResponseEntity<>(new RecipeIdentifier(this.recipes.indexOf(recipe)), HttpStatus.OK) :
-                new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<RecipeIdDto> postRecipe(@RequestBody Recipe recipe) {
+        return new ResponseEntity<>(new RecipeIdDto(this.recipeService.getRecipes().save(recipe).getId()),
+                HttpStatus.CREATED);
     }
 
 }
