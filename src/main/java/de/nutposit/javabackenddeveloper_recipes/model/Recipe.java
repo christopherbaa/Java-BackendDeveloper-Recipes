@@ -73,6 +73,6 @@ public class Recipe {
     public void setDirections(List<String> directions) {
         this.directions = directions;
     }
-    
+
 }
 
