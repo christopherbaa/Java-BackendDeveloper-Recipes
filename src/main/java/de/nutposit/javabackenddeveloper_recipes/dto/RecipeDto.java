@@ -2,7 +2,6 @@ package de.nutposit.javabackenddeveloper_recipes.dto;
 
 import de.nutposit.javabackenddeveloper_recipes.model.Recipe;
 
-import java.util.ArrayList;
 import java.util.List;
 
 

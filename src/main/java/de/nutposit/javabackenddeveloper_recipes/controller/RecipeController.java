@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/recipe")
@@ -33,9 +35,24 @@ public class RecipeController {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<RecipeIdDto> postRecipe(@RequestBody Recipe recipe) {
+    public ResponseEntity<RecipeIdDto> postRecipe(@Valid @RequestBody Recipe recipe) {
         return new ResponseEntity<>(new RecipeIdDto(this.recipeService.getRecipes().save(recipe).getId()),
-                HttpStatus.CREATED);
+                HttpStatus.OK);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteRecipe(@PathVariable("id") Long id) {
+        if(this.recipeService.getRecipes().existsById(id)) {
+            this.recipeService.getRecipes().deleteById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+/*    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }*/
 }
