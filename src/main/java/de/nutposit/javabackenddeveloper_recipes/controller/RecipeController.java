@@ -32,7 +32,7 @@ public class RecipeController {
     @GetMapping("/{id}")
     public ResponseEntity<RecipeDto> getRecipe(@PathVariable("id") Long id) {
         return this.recipeService.getRecipes().existsById(id) ?
-                new ResponseEntity<>(new RecipeDto(this.recipeService.getRecipes().findById(id).orElse(new Recipe())), HttpStatus.OK) :
+                new ResponseEntity<>(new RecipeDto(this.recipeService.getRecipes().findById(id).get()), HttpStatus.OK) :
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
