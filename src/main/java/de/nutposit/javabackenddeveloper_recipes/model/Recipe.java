@@ -3,6 +3,7 @@ package de.nutposit.javabackenddeveloper_recipes.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,8 +13,13 @@ public class Recipe {
     @Id
     @GeneratedValue
     private long id;
+    @Size(min = 8, message= "date should at least have 8 characters")
+    private LocalDateTime date;
     @NotBlank(message = "name is required")
     private String name;
+
+    @NotBlank(message = "category is required")
+    private String category;
     @NotBlank(message = "description is required")
     private String description;
    @ElementCollection
@@ -30,9 +36,11 @@ public class Recipe {
     public Recipe() {
     }
 
-    public Recipe(long id, String name, String description, List<String> ingredients, List<String> directions) {
+    public Recipe(long id, LocalDateTime date, String name, String category, String description, List<String> ingredients, List<String> directions) {
         this.id = id;
+        this.date = date;
         this.name = name;
+        this.category = category;
         this.description = description;
         this.ingredients = ingredients;
         this.directions = directions;
@@ -78,5 +86,20 @@ public class Recipe {
         this.directions = directions;
     }
 
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 }
 
