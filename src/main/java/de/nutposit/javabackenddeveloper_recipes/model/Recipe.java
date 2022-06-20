@@ -13,7 +13,6 @@ public class Recipe {
     @Id
     @GeneratedValue
     private long id;
-    @Size(min = 8, message= "date should at least have 8 characters")
     private LocalDateTime date;
     @NotBlank(message = "name is required")
     private String name;
@@ -34,11 +33,12 @@ public class Recipe {
     private List<String> directions = new ArrayList<>();
 
     public Recipe() {
+        this.date = LocalDateTime.now();
     }
 
-    public Recipe(long id, LocalDateTime date, String name, String category, String description, List<String> ingredients, List<String> directions) {
+    public Recipe(long id, String name, String category, String description, List<String> ingredients, List<String> directions) {
         this.id = id;
-        this.date = date;
+        this.date = LocalDateTime.now();
         this.name = name;
         this.category = category;
         this.description = description;

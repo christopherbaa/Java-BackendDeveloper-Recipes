@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Map;
 
 
 @RestController
@@ -34,10 +36,30 @@ public class RecipeController {
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ArrayList<RecipeDto>> getRecipesByNameOrCategory(@RequestParam Map<String, String> params) {
+        return params.containsKey("name") && params.size() == 1 ?
+                new ResponseEntity<>(this.recipeService.getRecipesByName(params.get("name")), HttpStatus.OK) :
+                params.containsKey("category") && params.size() == 1 ?
+                        new ResponseEntity<>(this.recipeService.getRecipesByCategory(params.get("category")), HttpStatus.OK) :
+                        new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
     @PostMapping("/new")
     public ResponseEntity<RecipeIdDto> postRecipe(@Valid @RequestBody Recipe recipe) {
         return new ResponseEntity<>(new RecipeIdDto(this.recipeService.getRecipes().save(recipe).getId()),
                 HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<String> putRecipe(@PathVariable("id") Long id, @Valid @RequestBody Recipe recipe) {
+        if(this.recipeService.getRecipes().existsById(id)) {
+            recipe.setId(id);
+            this.recipeService.getRecipes().save(recipe);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -50,9 +72,4 @@ public class RecipeController {
         }
     }
 
-/*    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }*/
 }

@@ -8,7 +8,6 @@ import java.util.List;
 
 public class RecipeDto {
     private String name;
-
     private LocalDateTime date;
     private String category;
     private String description;
