@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "recipes")
 public class Recipe {
 
     @Id
@@ -32,11 +33,15 @@ public class Recipe {
    @Column(name = "directions")
     private List<String> directions = new ArrayList<>();
 
+   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+   @JoinColumn(name = "user_id", nullable = false)
+   private User user;
+
     public Recipe() {
         this.date = LocalDateTime.now();
     }
 
-    public Recipe(long id, String name, String category, String description, List<String> ingredients, List<String> directions) {
+    public Recipe(long id, LocalDateTime date, String name, String category, String description, List<String> ingredients, List<String> directions, User user) {
         this.id = id;
         this.date = LocalDateTime.now();
         this.name = name;
@@ -44,6 +49,7 @@ public class Recipe {
         this.description = description;
         this.ingredients = ingredients;
         this.directions = directions;
+        this.user = user;
     }
 
     public String getName() {
@@ -100,6 +106,14 @@ public class Recipe {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
 

@@ -3,73 +3,95 @@ package de.nutposit.javabackenddeveloper_recipes.controller;
 import de.nutposit.javabackenddeveloper_recipes.dto.RecipeDto;
 import de.nutposit.javabackenddeveloper_recipes.model.Recipe;
 import de.nutposit.javabackenddeveloper_recipes.dto.RecipeIdDto;
-import de.nutposit.javabackenddeveloper_recipes.service.RecipeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.nutposit.javabackenddeveloper_recipes.model.User;
+import de.nutposit.javabackenddeveloper_recipes.service.RecipeServiceImpl;
+import de.nutposit.javabackenddeveloper_recipes.service.UserServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Map;
 
 
 @RestController
-@RequestMapping("/api/recipe")
+@RequestMapping("/api")
 public class RecipeController {
 
-    private final RecipeService recipeService;
+    private final RecipeServiceImpl recipeServiceImpl;
+    private final UserServiceImpl userServiceImpl;
 
-    public RecipeController(@Autowired RecipeService recipeService) {
-        this.recipeService = recipeService;
+    public RecipeController(RecipeServiceImpl recipeServiceImpl, UserServiceImpl userServiceImpl) {
+        this.recipeServiceImpl = recipeServiceImpl;
+        this.userServiceImpl = userServiceImpl;
     }
 
-    @GetMapping
+    @GetMapping("/recipe")
     public Iterable<Recipe> getRecipes() {
-        return recipeService.getRecipes().findAll();
+        return recipeServiceImpl.getRecipes().findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/recipe/{id}")
     public ResponseEntity<RecipeDto> getRecipe(@PathVariable("id") Long id) {
-        return this.recipeService.getRecipes().existsById(id) ?
-                new ResponseEntity<>(new RecipeDto(this.recipeService.getRecipes().findById(id).get()), HttpStatus.OK) :
+        return this.recipeServiceImpl.getRecipes().existsById(id) ?
+                new ResponseEntity<>(new RecipeDto(this.recipeServiceImpl.getRecipes().findById(id).get()), HttpStatus.OK) :
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/search")
+    @GetMapping("/recipe/search")
     public ResponseEntity<ArrayList<RecipeDto>> getRecipesByNameOrCategory(@RequestParam Map<String, String> params) {
         return params.containsKey("name") && params.size() == 1 ?
-                new ResponseEntity<>(this.recipeService.getRecipesByName(params.get("name")), HttpStatus.OK) :
+                new ResponseEntity<>(this.recipeServiceImpl.getRecipesByName(params.get("name")), HttpStatus.OK) :
                 params.containsKey("category") && params.size() == 1 ?
-                        new ResponseEntity<>(this.recipeService.getRecipesByCategory(params.get("category")), HttpStatus.OK) :
+                        new ResponseEntity<>(this.recipeServiceImpl.getRecipesByCategory(params.get("category")), HttpStatus.OK) :
                         new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @PostMapping("/new")
-    public ResponseEntity<RecipeIdDto> postRecipe(@Valid @RequestBody Recipe recipe) {
-        return new ResponseEntity<>(new RecipeIdDto(this.recipeService.getRecipes().save(recipe).getId()),
+    @PostMapping("/recipe/new")
+    public ResponseEntity<RecipeIdDto> postRecipe(@Valid @RequestBody Recipe recipe, Principal user) {
+        recipe.setUser(this.userServiceImpl.getUserRepository().findByEmail(user.getName()));
+        return new ResponseEntity<>(new RecipeIdDto(this.recipeServiceImpl.getRecipes().save(recipe).getId()),
                 HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<String> putRecipe(@PathVariable("id") Long id, @Valid @RequestBody Recipe recipe) {
-        if(this.recipeService.getRecipes().existsById(id)) {
-            recipe.setId(id);
-            this.recipeService.getRecipes().save(recipe);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @PutMapping("/recipe/{id}")
+    public ResponseEntity<String> putRecipe(@PathVariable("id") Long id, @Valid @RequestBody Recipe recipe, Principal user) {
+        User actualUser = this.userServiceImpl.getUserRepository().findByEmail(user.getName());
+        if(this.recipeServiceImpl.getRecipes().existsById(id)) {
+            if(this.recipeServiceImpl.getRecipes().findById(id).get().getUser().getId().equals(actualUser.getId())) {
+                recipe.setId(id);
+                recipe.setUser(actualUser);
+                this.recipeServiceImpl.getRecipes().save(recipe);
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteRecipe(@PathVariable("id") Long id) {
-        if(this.recipeService.getRecipes().existsById(id)) {
-            this.recipeService.getRecipes().deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @DeleteMapping("/recipe/{id}")
+    public ResponseEntity<String> deleteRecipe(@PathVariable("id") Long id, Principal user) {
+        Long userId = this.userServiceImpl.getUserRepository().findByEmail(user.getName()).getId();
+        if(this.recipeServiceImpl.getRecipes().existsById(id)) {
+            if(this.recipeServiceImpl.getRecipes().findById(id).get().getUser().getId().equals(userId)) {
+                this.recipeServiceImpl.getRecipes().deleteById(id);
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@Valid @RequestBody User user) {
+        return this.userServiceImpl.register(user) ?
+                new ResponseEntity<>(HttpStatus.OK) :
+                new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
 }
